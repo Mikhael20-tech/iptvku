@@ -467,8 +467,9 @@ const AdminPanel = ({ channels, movies, onUpdateChannels, onUpdateMovies, onLogo
         setChannelStatus(prev => ({ ...prev, [ch.id]: 'loading' }));
         try {
           let url = ch.url;
-          if (url.startsWith('http') && !url.includes('localhost')) {
-            url = `http://localhost:8080/${url}`;
+          const proxy = import.meta.env.VITE_PROXY_URL || 'http://localhost:8080';
+          if (url.startsWith('http') && !url.includes('localhost') && !url.includes(proxy)) {
+            url = `${proxy}/${url}`;
           }
           const hdrs = {};
           if (ch.headers?.referer) hdrs['X-Proxy-Referer'] = ch.headers.referer;

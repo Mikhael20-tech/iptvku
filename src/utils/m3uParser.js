@@ -167,8 +167,9 @@ export function parseM3UText(text) {
 
 export async function fetchAndParseM3U(url) {
   let fetchUrl = url;
-  if (url.startsWith('http') && !url.includes('localhost')) {
-    fetchUrl = `http://localhost:8080/${url}`;
+  const proxy = import.meta.env.VITE_PROXY_URL || 'http://localhost:8080';
+  if (url.startsWith('http') && !url.includes('localhost') && !url.includes(proxy)) {
+    fetchUrl = `${proxy}/${url}`;
   }
   const resp = await fetch(fetchUrl);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
