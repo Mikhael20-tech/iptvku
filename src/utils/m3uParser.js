@@ -167,7 +167,7 @@ export function parseM3UText(text) {
 
 export async function fetchAndParseM3U(url) {
   let fetchUrl = url;
-  const proxy = import.meta.env.VITE_PROXY_URL || 'http://localhost:8080';
+  const proxy = import.meta.env.VITE_PROXY_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? '/proxy' : 'http://localhost:8080');
   if (url.startsWith('http') && !url.includes('localhost') && !url.includes(proxy)) {
     fetchUrl = `${proxy}/${url}`;
   }

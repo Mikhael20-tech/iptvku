@@ -1,6 +1,36 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+const { ProxyAgent } = require('proxy-agent');
+
+// Muat variabel env secara manual di Node
+function loadEnv() {
+    const envs = ['.env.local', '.env'];
+    for (const file of envs) {
+        const p = path.join(__dirname, file);
+        if (fs.existsSync(p)) {
+            const content = fs.readFileSync(p, 'utf8');
+            content.split('\n').forEach(line => {
+                const parts = line.split('=');
+                if (parts.length >= 2) {
+                    const key = parts[0].trim();
+                    const val = parts.slice(1).join('=').trim().replace(/^['"]|['"]$/g, '');
+                    process.env[key] = val;
+                }
+            });
+            break;
+        }
+    }
+}
+loadEnv();
+
+if (process.env.VITE_UPSTREAM_PROXY) {
+    process.env.HTTP_PROXY = process.env.VITE_UPSTREAM_PROXY;
+    process.env.HTTPS_PROXY = process.env.VITE_UPSTREAM_PROXY;
+}
+const agent = process.env.HTTP_PROXY ? new ProxyAgent() : undefined;
 
 const app = express();
 app.use(cors()); // Buka semua CORS untuk frontend
@@ -23,6 +53,7 @@ app.use('/', (req, res, next) => {
             target: targetUrl.origin,
             changeOrigin: true,
             secure: false, // Abaikan SSL error jika ada
+            agent: agent,
             pathRewrite: () => {
                 return targetUrl.pathname + targetUrl.search;
             },
